@@ -1,2 +1,1 @@
 # labyrinth
-Nata
