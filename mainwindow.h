@@ -16,6 +16,7 @@
 #include <QGraphicsView>
 #include "square.h"
 #include "QTime"
+#include <QTimer>
 
 namespace Ui {
 class MainWindow;
@@ -38,7 +39,14 @@ class MainWindow : public QMainWindow
     bool left;
     bool right;
     bool up;
+    QTimer *tmr;
     bool bottom;
+    //
+        int grav_direction;
+        //0 - Право
+        //1 - Верх
+        //2 - Лево
+        //3 - Низ
    //
     int cells_h; // ячеек по горизонтали
     int cells_v; // ячеек по вертикали
@@ -77,6 +85,7 @@ public slots:
     void generate();
     void blockInterface();
     void unBlockInterface();
+    void timerTick();
 };
 
 #endif // MAINWINDOW_H

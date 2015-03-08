@@ -5,13 +5,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    tmr = new QTimer(this);
+    connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+    tmr->start(100);
     QTime midnight(0,0,0);
     qsrand(midnight.secsTo(QTime::currentTime()));
     ui->setupUi(this);
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(blockInterface()));
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(generate()));
     connect(this, SIGNAL(emitGenerationComplete()), this, SLOT(unBlockInterface()));
-
     this->setFixedSize(500,530);
     ui->graphicsView->setFixedSize(450,450);
     scene = new QGraphicsScene(this);
@@ -29,6 +31,49 @@ MainWindow::MainWindow(QWidget *parent) :
     clearCells();
     scene->addPixmap(*pm);
     //generate();
+}
+
+void MainWindow::timerTick()
+{
+    QPen pen;
+    pen.setColor(Qt::black);
+    painter->setBrush(QBrush(Qt::black));
+    pen.setWidth(1);
+    painter->setPen(pen);
+    painter->drawEllipse(x,y,r,r);
+    switch (grav_direction) {
+        case 0: // вправо
+                if (right){
+                    x=x+1;
+                    if (x >= pm->width())
+                        x=pm->width()-1;
+                }
+                break;
+        case 1: // вверх
+                if (up){
+                    y=y-1;
+                    if (y < 0)
+                        y=0;
+                }
+                break;
+        case 2: // влево
+                if (left){
+                    x=x-1;
+                    if (x < 0)
+                        x=0;
+                }
+                break;
+        case 3: // вниз
+                if (bottom){
+                    y=y+1;
+                    if (y >= pm->height()-r)
+                        y=pm->height()-1;
+                }
+                break;
+    }
+
+    repaint();
+
 }
 
 void MainWindow::paintEvent(QPaintEvent * /*event*/)
@@ -127,6 +172,7 @@ void MainWindow::generate(){
     y = r-1;
     clearCells();
     generate(cells_h, cells_v, 0, 0);
+    grav_direction = qrand() % 4;
     emitGenerationComplete();
     painter->drawRect(0,0,pm->width(),pm->height());
     painter->setPen(QPen(Qt::gray, 5));
