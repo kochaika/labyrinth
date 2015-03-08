@@ -15,6 +15,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include "square.h"
+#include "QTime"
 
 namespace Ui {
 class MainWindow;

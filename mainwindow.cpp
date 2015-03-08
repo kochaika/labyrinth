@@ -5,6 +5,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    QTime midnight(0,0,0);
+    qsrand(midnight.secsTo(QTime::currentTime()));
     ui->setupUi(this);
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(blockInterface()));
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(generate()));
@@ -126,7 +128,6 @@ void MainWindow::generate(){
     clearCells();
     generate(cells_h, cells_v, 0, 0);
     emitGenerationComplete();
-
     painter->drawRect(0,0,pm->width(),pm->height());
     painter->setPen(QPen(Qt::gray, 5));
     for (int i = 0; i < cells_v; i++)
