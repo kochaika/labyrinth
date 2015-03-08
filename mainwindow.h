@@ -41,6 +41,7 @@ class MainWindow : public QMainWindow
     bool up;
     QTimer *tmr;
     bool bottom;
+    long timer_tick_counter;
     //
         int grav_direction;
         //0 - Право

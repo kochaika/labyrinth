@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tmr->start(100);
     QTime midnight(0,0,0);
     qsrand(midnight.secsTo(QTime::currentTime()));
+    timer_tick_counter = 50+ (qrand() % 100);
     ui->setupUi(this);
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(blockInterface()));
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(generate()));
@@ -35,6 +36,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::timerTick()
 {
+    timer_tick_counter--;
+    if(timer_tick_counter <0)
+    {
+        timer_tick_counter = 50+ (qrand() % 50); //Можно менять сложность
+        grav_direction = qrand() % 4;
+    }
     QPen pen;
     pen.setColor(Qt::black);
     painter->setBrush(QBrush(Qt::black));
