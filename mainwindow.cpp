@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     tmr = new QTimer(this);
     connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
-    tmr->start(100);
+
     QTime midnight(0,0,0);
     qsrand(midnight.secsTo(QTime::currentTime()));
     timer_tick_counter = 50+ (qrand() % 100);
@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(emitGenerationComplete()), this, SLOT(unBlockInterface()));
     this->setFixedSize(500,530);
     ui->graphicsView->setFixedSize(450,450);
+    ui->graphicsView->setBackgroundBrush(QBrush(Qt::lightGray));
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
     pm = new QPixmap(400,400);
@@ -49,34 +50,34 @@ void MainWindow::timerTick()
     painter->setPen(pen);
     painter->drawEllipse(x,y,r,r);
     switch (grav_direction) {
-        case 0: // вправо
-                if (right){
-                    x=x+1;
-                    if (x >= pm->width())
-                        x=pm->width()-1;
-                }
-                break;
-        case 1: // вверх
-                if (up){
-                    y=y-1;
-                    if (y < 0)
-                        y=0;
-                }
-                break;
-        case 2: // влево
-                if (left){
-                    x=x-1;
-                    if (x < 0)
-                        x=0;
-                }
-                break;
-        case 3: // вниз
-                if (bottom){
-                    y=y+1;
-                    if (y >= pm->height()-r)
-                        y=pm->height()-1;
-                }
-                break;
+    case 0: // вправо
+        if (right){
+            x=x+1;
+            if (x >= pm->width())
+                x=pm->width()-1;
+        }
+        break;
+    case 1: // вверх
+        if (up){
+            y=y-1;
+            if (y < 0)
+                y=0;
+        }
+        break;
+    case 2: // влево
+        if (left){
+            x=x-1;
+            if (x < 0)
+                x=0;
+        }
+        break;
+    case 3: // вниз
+        if (bottom){
+            y=y+1;
+            if (y >= pm->height()-r)
+                y=pm->height()-1;
+        }
+        break;
     }
 
     repaint();
@@ -88,9 +89,9 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
 
     QPen pen(Qt::gray, 2);
     painter->setPen(pen);
-   // QPoint a(0,0), b(200,200);
+    // QPoint a(0,0), b(200,200);
     // painter->drawLine(a,b);
-  /*  painter->drawRect(0,0,pm->width(),pm->height());
+    /*  painter->drawRect(0,0,pm->width(),pm->height());
     painter->setPen(QPen(Qt::gray, 5));
     for (int i = 0; i < cells_v; i++)
         for (int j = 0; j < cells_h; j++) {
@@ -108,8 +109,30 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
     painter->setPen(pen);
     painter->setBrush(QBrush(Qt::green));
     painter->drawEllipse(pm->width()-10,pm->height()-10,12,12);
-   // painter->drawEllipse(0,10,12,12);
+    // painter->drawEllipse(0,10,12,12);
     pen.setColor(Qt::red);
+    // красный контур - нет гравитации
+    // cиний - влево
+    if (grav_direction == 2)
+    {
+        pen.setColor(Qt::cyan);
+    }
+    // желтый - вниз
+    if (grav_direction == 3)
+    {
+        pen.setColor(Qt::yellow);
+    }
+    // розовый - вправо
+    if (grav_direction == 0)
+    {
+        pen.setColor(Qt::magenta);
+    }
+    // белый - вверх
+    if (grav_direction == 1)
+    {
+        pen.setColor(Qt::white);
+    }
+
     painter->setBrush(QBrush(Qt::red));
     pen.setWidth(1);
     painter->setPen(pen);
@@ -155,11 +178,12 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
     }
     if (check != 0)
         left = false; // влево нельзя
-        //
+    //
     color = im.pixel(x+r+1,y+r+1);
 
     if (color.name() == "#00ff00"){
-               // добрались до финиша
+        // добрались до финиша
+        tmr->stop();
         painter->setBrush(QBrush(Qt::black));
         painter->drawRect(QRectF(0,0,pm->width(),pm->height()));
         painter->drawText(QRectF(pm->width()/2-10,pm->height()/2-10,100,100),"YOU WIN");
@@ -181,7 +205,7 @@ void MainWindow::generate(){
     generate(cells_h, cells_v, 0, 0);
     grav_direction = qrand() % 4;
     emitGenerationComplete();
-    painter->drawRect(0,0,pm->width(),pm->height());
+    painter->drawRect(2,2,pm->width()-2,pm->height()-2);
     painter->setPen(QPen(Qt::gray, 5));
     for (int i = 0; i < cells_v; i++)
         for (int j = 0; j < cells_h; j++) {
@@ -194,6 +218,32 @@ void MainWindow::generate(){
             if ( cells[i][j]->get_bottom_edge() )
                 painter->drawLine(j * width,  (i + 1) * height, (j + 1) * width, (i + 1) * height);
         }
+    // cиний - влево
+    //if (grav_direction == 2)
+    // {
+    //pen.setColor(Qt::cyan);
+    painter->setPen(QPen(Qt::cyan,2));
+    painter->drawLine(1,1,1,1000);
+    // }
+    // желтый - вниз
+    //if (grav_direction == 3)
+    //{
+    painter->setPen(QPen(Qt::yellow,2));
+    painter->drawLine(1,pm->height(),1000,pm->height());
+    //}
+    // розовый - вправо
+    //if (grav_direction == 0)
+    //{
+    painter->setPen(QPen(Qt::magenta,2));
+    painter->drawLine(pm->width(),1,pm->width(),1000);
+    //}
+    // белый - вверх
+    //if (grav_direction == 1)
+    //{
+    painter->setPen(QPen(Qt::white,2));
+    painter->drawLine(1,1,1000,1);
+    //}
+     tmr->start(100);
     repaint();
 }
 
@@ -216,7 +266,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
             if (y < 0)
                 y=0;
         }
-      //  qDebug() << "y ="<< y;
+        //  qDebug() << "y ="<< y;
         break;
     case Qt::Key_Down:
         if (bottom){
@@ -224,7 +274,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
             if (y >= pm->height()-r)
                 y=pm->height()-1;
         }
-      //  qDebug() << "y ="<< y;
+        //  qDebug() << "y ="<< y;
         break;
     case Qt::Key_Left:
         if (left){
@@ -232,7 +282,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
             if (x < 0)
                 x=0;
         }
-      //  qDebug() << "x ="<< x;
+        //  qDebug() << "x ="<< x;
         break;
     case Qt::Key_Right:
         if (right){
@@ -240,7 +290,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
             if (x >= pm->width())
                 x=pm->width()-1;
         }
-      //  qDebug() << "x ="<< x;
+        //  qDebug() << "x ="<< x;
         break;
     default:
         e->ignore();
@@ -271,7 +321,7 @@ void MainWindow::keyPressEvent(QKeyEvent * e)
             if (y < 0)
                 y=0;
         }
-      //  qDebug() << "y ="<< y;
+        //  qDebug() << "y ="<< y;
         break;
     case Qt::Key_Down:
         if (bottom){
@@ -279,7 +329,7 @@ void MainWindow::keyPressEvent(QKeyEvent * e)
             if (y >= pm->height()-r)
                 y=pm->height()-1;
         }
-      //  qDebug() << "y ="<< y;
+        //  qDebug() << "y ="<< y;
         break;
     case Qt::Key_Left:
         if (left){
@@ -287,7 +337,7 @@ void MainWindow::keyPressEvent(QKeyEvent * e)
             if (x < 0)
                 x=0;
         }
-      //  qDebug() << "x ="<< x;
+        //  qDebug() << "x ="<< x;
         break;
     case Qt::Key_Right:
         if (right){
@@ -295,7 +345,7 @@ void MainWindow::keyPressEvent(QKeyEvent * e)
             if (x >= pm->width())
                 x=pm->width()-1;
         }
-      //  qDebug() << "x ="<< x;
+        //  qDebug() << "x ="<< x;
         break;
     default:
         e->ignore();
@@ -322,27 +372,27 @@ void MainWindow::blockInterface() {
 
 void MainWindow::unBlockInterface() {
     ui->pushButton_generate->setEnabled(true);
-   // ui->pushButton_search->setEnabled(true);
+    // ui->pushButton_search->setEnabled(true);
 }
 
 
 void MainWindow::clearCells() {
     for (int i = 0; i < cells_v; i++)
-       for (int j = 0; j < cells_h; j++) {
-           cells[i][j]->set_left_edge(false);
-           cells[i][j]->set_top_edge(false);
-           cells[i][j]->set_right_edge(false);
-           cells[i][j]->set_bottom_edge(false);
+        for (int j = 0; j < cells_h; j++) {
+            cells[i][j]->set_left_edge(false);
+            cells[i][j]->set_top_edge(false);
+            cells[i][j]->set_right_edge(false);
+            cells[i][j]->set_bottom_edge(false);
 
-           if (i == 0)
-               cells[i][j]->set_top_edge(true);
-           else if (i == cells_v - 1)
-               cells[i][j]->set_bottom_edge(true);
+            if (i == 0)
+                cells[i][j]->set_top_edge(true);
+            else if (i == cells_v - 1)
+                cells[i][j]->set_bottom_edge(true);
 
-           if (j == 0)
-               cells[i][j]->set_left_edge(true);
-           else if (j == cells_h - 1)
-               cells[i][j]->set_right_edge(true);
+            if (j == 0)
+                cells[i][j]->set_left_edge(true);
+            else if (j == cells_h - 1)
+                cells[i][j]->set_right_edge(true);
         }
 }
 
@@ -414,22 +464,22 @@ void MainWindow::generate(int nH, int nV, int sH, int sV) {
 
     // закрываем один из проходов
     switch (qrand() % 4) {
-        case 0: // горизонтальный слева
-            for (int i = sH; i < sH + indexH + 1; i++)
-                cells[indexV + sV][i]->set_bottom_edge(true);
-            break;
-        case 1: // горизонтальный справа
-            for (int i = 0; i < nH - indexH - 1; i++)
-                cells[indexV + sV][indexH + 1 + i + sH]->set_bottom_edge(true);
-            break;
-        case 2: // вертикальный сверху
-            for (int i = sV; i < sV + indexV + 1; i++)
-                cells[i][indexH + sH]->set_right_edge(true);
-            break;
-        case 3: // вертикальный снизу
-            for (int i =  0; i < nV - indexV - 1; i++)
-                cells[indexV + 1 + i + sV][indexH + sH]->set_right_edge(true);
-            break;
+    case 0: // горизонтальный слева
+        for (int i = sH; i < sH + indexH + 1; i++)
+            cells[indexV + sV][i]->set_bottom_edge(true);
+        break;
+    case 1: // горизонтальный справа
+        for (int i = 0; i < nH - indexH - 1; i++)
+            cells[indexV + sV][indexH + 1 + i + sH]->set_bottom_edge(true);
+        break;
+    case 2: // вертикальный сверху
+        for (int i = sV; i < sV + indexV + 1; i++)
+            cells[i][indexH + sH]->set_right_edge(true);
+        break;
+    case 3: // вертикальный снизу
+        for (int i =  0; i < nV - indexV - 1; i++)
+            cells[indexV + 1 + i + sV][indexH + sH]->set_right_edge(true);
+        break;
     }
 
     // рекурсия в нижний правый отсек
@@ -449,28 +499,28 @@ void MainWindow::initMaze(){
     width = 20;
     height = 20;
 
-   // shiftForPoints = 2;
+    // shiftForPoints = 2;
     //x1 = shiftForPoints;
-   // y1 = shiftForPoints;
-   // x2 = cells_h * width - (width - shiftForPoints);
-   // y2 = cells_v * height - (height - shiftForPoints);
+    // y1 = shiftForPoints;
+    // x2 = cells_h * width - (width - shiftForPoints);
+    // y2 = cells_v * height - (height - shiftForPoints);
     //  path_found = false;
 
     // Выделяем память
-     alg_Li = new int*[cells_h];
-     for (int i = 0; i < cells_h; i++)
-         alg_Li[i] = new int[cells_v];
+    alg_Li = new int*[cells_h];
+    for (int i = 0; i < cells_h; i++)
+        alg_Li[i] = new int[cells_v];
 
-     cells = new Square** [cells_h];
-     for (int i = 0; i < cells_h; i++)
-         cells[i] = new Square* [cells_v];
+    cells = new Square** [cells_h];
+    for (int i = 0; i < cells_h; i++)
+        cells[i] = new Square* [cells_v];
 
-     for (int i = 0; i < cells_v; i++)
+    for (int i = 0; i < cells_v; i++)
         for (int j = 0; j < cells_h; j++)
             cells[i][j] = new Square(0, 0, 0, 0);
 
-     // приводим ячейки к виду пустого лабиринта
-     clearCells();
+    // приводим ячейки к виду пустого лабиринта
+    clearCells();
 }
 
 
@@ -481,7 +531,7 @@ void MainWindow::cleareMaze(){
             delete cells[i][j];
 
     for (int i = 0; i < cells_h; i++) {
-       delete [] cells[i];
+        delete [] cells[i];
     }
     delete [] cells;
 
