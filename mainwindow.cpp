@@ -6,8 +6,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     tmr = new QTimer(this);
+    key_tmr = new QTimer(this);
     connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
-
+    connect(key_tmr, SIGNAL(timeout()), this, SLOT(Key_timerTick()));
+    key_up_pressed = false;
+    key_down_pressed = false;
+    key_left_pressed = false;
+    key_right_pressed = false;
     QTime midnight(0,0,0);
     qsrand(midnight.secsTo(QTime::currentTime()));
     timer_tick_counter = 50+ (qrand() % 100);
@@ -244,119 +249,207 @@ void MainWindow::generate(){
     painter->drawLine(1,1,1000,1);
     //}
      tmr->start(100);
-    repaint();
-}
-
-void MainWindow::keyReleaseEvent(QKeyEvent *e)
-{
-    QPen pen;
-    pen.setColor(Qt::black);
-    painter->setBrush(QBrush(Qt::black));
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawEllipse(x,y,r,r);
-    switch (e->key())
-    {
-    case Qt::Key_Escape:
-        this->close();
-        return;
-    case Qt::Key_Up:
-        if (up){
-            y=y-1;
-            if (y < 0)
-                y=0;
-        }
-        //  qDebug() << "y ="<< y;
-        break;
-    case Qt::Key_Down:
-        if (bottom){
-            y=y+1;
-            if (y >= pm->height()-r)
-                y=pm->height()-1;
-        }
-        //  qDebug() << "y ="<< y;
-        break;
-    case Qt::Key_Left:
-        if (left){
-            x=x-1;
-            if (x < 0)
-                x=0;
-        }
-        //  qDebug() << "x ="<< x;
-        break;
-    case Qt::Key_Right:
-        if (right){
-            x=x+1;
-            if (x >= pm->width())
-                x=pm->width()-1;
-        }
-        //  qDebug() << "x ="<< x;
-        break;
-    default:
-        e->ignore();
-    }
-    left = true;
-    right = true;
-    bottom = true;
-    up = true;
+     key_tmr->start(30);
     repaint();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent * e)
 {
-    QPen pen;
-    pen.setColor(Qt::black);
-    painter->setBrush(QBrush(Qt::black));
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawEllipse(x,y,r,r);
     switch (e->key())
-    {
-    case Qt::Key_Escape:
-        this->close();
-        return;
-    case Qt::Key_Up:
-        if (up){
-            y=y-1;
-            if (y < 0)
-                y=0;
+        {
+        case Qt::Key_Escape:
+            this->close();
+            return;
+        case Qt::Key_Up:
+            key_up_pressed = true;
+            break;
+        case Qt::Key_Down:
+            key_down_pressed = true;
+            break;
+        case Qt::Key_Left:
+            key_left_pressed = true;
+            break;
+        case Qt::Key_Right:
+            key_right_pressed = true;
+            break;
+        default:
+            e->ignore();
         }
-        //  qDebug() << "y ="<< y;
-        break;
-    case Qt::Key_Down:
-        if (bottom){
-            y=y+1;
-            if (y >= pm->height()-r)
-                y=pm->height()-1;
-        }
-        //  qDebug() << "y ="<< y;
-        break;
-    case Qt::Key_Left:
-        if (left){
-            x=x-1;
-            if (x < 0)
-                x=0;
-        }
-        //  qDebug() << "x ="<< x;
-        break;
-    case Qt::Key_Right:
-        if (right){
-            x=x+1;
-            if (x >= pm->width())
-                x=pm->width()-1;
-        }
-        //  qDebug() << "x ="<< x;
-        break;
-    default:
-        e->ignore();
-    }
-    left = true;
-    right = true;
-    bottom = true;
-    up = true;
-    repaint();
-    //scene->update();
 }
+
+void MainWindow::keyReleaseEvent(QKeyEvent * e)
+{
+    switch (e->key())
+        {
+        case Qt::Key_Escape:
+            this->close();
+            return;
+        case Qt::Key_Up:
+            key_up_pressed = false;
+            break;
+        case Qt::Key_Down:
+            key_down_pressed = false;
+            break;
+        case Qt::Key_Left:
+            key_left_pressed = false;
+            break;
+        case Qt::Key_Right:
+            key_right_pressed = false;
+            break;
+        default:
+            e->ignore();
+        }
+}
+
+//void MainWindow::keyReleaseEvent(QKeyEvent *e)
+//{
+//    QPen pen;
+//    pen.setColor(Qt::black);
+//    painter->setBrush(QBrush(Qt::black));
+//    pen.setWidth(1);
+//    painter->setPen(pen);
+//    painter->drawEllipse(x,y,r,r);
+//    switch (e->key())
+//    {
+//    case Qt::Key_Escape:
+//        this->close();
+//        return;
+//    case Qt::Key_Up:
+//        if (up){
+//            y=y-1;
+//            if (y < 0)
+//                y=0;
+//        }
+//        //  qDebug() << "y ="<< y;
+//        break;
+//    case Qt::Key_Down:
+//        if (bottom){
+//            y=y+1;
+//            if (y >= pm->height()-r)
+//                y=pm->height()-1;
+//        }
+//        //  qDebug() << "y ="<< y;
+//        break;
+//    case Qt::Key_Left:
+//        if (left){
+//            x=x-1;
+//            if (x < 0)
+//                x=0;
+//        }
+//        //  qDebug() << "x ="<< x;
+//        break;
+//    case Qt::Key_Right:
+//        if (right){
+//            x=x+1;
+//            if (x >= pm->width())
+//                x=pm->width()-1;
+//        }
+//        //  qDebug() << "x ="<< x;
+//        break;
+//    default:
+//        e->ignore();
+//    }
+//    left = true;
+//    right = true;
+//    bottom = true;
+//    up = true;
+//    repaint();
+//}
+void MainWindow::Key_timerTick()
+{
+    if(!(key_down_pressed||key_left_pressed||key_right_pressed||key_up_pressed))return;
+        QPen pen;
+        pen.setColor(Qt::black);
+        painter->setBrush(QBrush(Qt::black));
+        pen.setWidth(1);
+        painter->setPen(pen);
+        painter->drawEllipse(x,y,r,r);
+                if (key_up_pressed && up){
+                    y=y-1;
+                    if (y < 0)
+                        y=0;
+                }
+
+                if (key_down_pressed&&bottom){
+                    y=y+1;
+                    if (y >= pm->height()-r)
+                        y=pm->height()-1;
+                }
+
+                if (key_left_pressed&&left){
+                    x=x-1;
+                    if (x < 0)
+                        x=0;
+                }
+                if (key_right_pressed&&right){
+                    x=x+1;
+                    if (x >= pm->width())
+                        x=pm->width()-1;
+                }
+
+            left = true;
+            right = true;
+            bottom = true;
+            up = true;
+            repaint();
+
+}
+
+//void MainWindow::keyPressEvent(QKeyEvent * e)
+//{
+//    QPen pen;
+//    pen.setColor(Qt::black);
+//    painter->setBrush(QBrush(Qt::black));
+//    pen.setWidth(1);
+//    painter->setPen(pen);
+//    painter->drawEllipse(x,y,r,r);
+//    switch (e->key())
+//    {
+//    case Qt::Key_Escape:
+//        this->close();
+//        return;
+//    case Qt::Key_Up:
+//        if (up){
+//            y=y-1;
+//            if (y < 0)
+//                y=0;
+//        }
+//        //  qDebug() << "y ="<< y;
+//        break;
+//    case Qt::Key_Down:
+//        if (bottom){
+//            y=y+1;
+//            if (y >= pm->height()-r)
+//                y=pm->height()-1;
+//        }
+//        //  qDebug() << "y ="<< y;
+//        break;
+//    case Qt::Key_Left:
+//        if (left){
+//            x=x-1;
+//            if (x < 0)
+//                x=0;
+//        }
+//        //  qDebug() << "x ="<< x;
+//        break;
+//    case Qt::Key_Right:
+//        if (right){
+//            x=x+1;
+//            if (x >= pm->width())
+//                x=pm->width()-1;
+//        }
+//        //  qDebug() << "x ="<< x;
+//        break;
+//    default:
+//        e->ignore();
+//    }
+//    left = true;
+//    right = true;
+//    bottom = true;
+//    up = true;
+//    repaint();
+//    //scene->update();
+//}
 
 MainWindow::~MainWindow()
 {

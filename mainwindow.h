@@ -36,10 +36,15 @@ class MainWindow : public QMainWindow
     int x;
     int y;
     int r;
+    bool key_up_pressed;
+    bool key_down_pressed;
+    bool key_left_pressed;
+    bool key_right_pressed;
     bool left;
     bool right;
     bool up;
     QTimer *tmr;
+    QTimer *key_tmr;
     bool bottom;
     long timer_tick_counter;
     //
@@ -87,6 +92,7 @@ public slots:
     void blockInterface();
     void unBlockInterface();
     void timerTick();
+    void Key_timerTick();
 };
 
 #endif // MAINWINDOW_H
