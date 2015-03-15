@@ -8,36 +8,50 @@ MainWindow::MainWindow(QWidget *parent) :
     tmr = new QTimer(this);
     key_tmr = new QTimer(this);
     connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+    gravity_level = 50;
+    maze_level = 2;
     connect(key_tmr, SIGNAL(timeout()), this, SLOT(Key_timerTick()));
-    key_up_pressed = false;
-    key_down_pressed = false;
-    key_left_pressed = false;
-    key_right_pressed = false;
     QTime midnight(0,0,0);
     qsrand(midnight.secsTo(QTime::currentTime()));
-    timer_tick_counter = 50+ (qrand() % 100);
     ui->setupUi(this);
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(blockInterface()));
     connect(ui->pushButton_generate, SIGNAL(clicked()), this, SLOT(generate()));
     connect(this, SIGNAL(emitGenerationComplete()), this, SLOT(unBlockInterface()));
-    this->setFixedSize(500,530);
-    ui->graphicsView->setFixedSize(450,450);
-    ui->graphicsView->setBackgroundBrush(QBrush(Qt::lightGray));
+
+    ui->maze_level->setMaximum(10);
+    ui->maze_level->setMinimum(0);
+    ui->gravity_level->setMaximum(10);
+    ui->maze_level->setMinimum(0);
+
+    this->setFixedSize(500,660);
+    ui->graphicsView->setFixedSize(480,480);
+    ui->graphicsView->setBackgroundBrush(QBrush(Qt::darkGray));
     scene = new QGraphicsScene(this);
-    ui->graphicsView->setScene(scene);
-    pm = new QPixmap(400,400);
-    maze_pm = new QPixmap(400,400);
-    maze_pm->fill(QColor(0,0,0,0));
+
+    user_time = 0;
+    your_time = new QTime();
+    time_d = "";
+    time_r = "";
+    pm = new QPixmap(470,470);
+
     painter = new QPainter(pm);
+    font = new QFont("Bavaria");
     left = true; // налево - свободно
     right = true; // направо - свободно
     up = true; // вверх - свободно
     bottom = true; // вниз - свободно
     r = 7;
+    indent = 35;
+    x = indent + r-1;
+    y = indent + r-1;
+
+
     initMaze();
     clearCells();
-    scene->addPixmap(*pm);
-    //generate();
+
+    just_won = false;
+    ui->graphicsView->setScene(scene);
+
 }
 
 void MainWindow::timerTick()
@@ -91,270 +105,228 @@ void MainWindow::timerTick()
 
 void MainWindow::paintEvent(QPaintEvent * /*event*/)
 {
-
-    QPen pen(Qt::gray, 2);
-    painter->setPen(pen);
-    // QPoint a(0,0), b(200,200);
-    // painter->drawLine(a,b);
-    /*  painter->drawRect(0,0,pm->width(),pm->height());
-    painter->setPen(QPen(Qt::gray, 5));
-    for (int i = 0; i < cells_v; i++)
-        for (int j = 0; j < cells_h; j++) {
-            if ( cells[i][j]->get_left_edge() ) //
-                painter->drawLine(j * width,  i * height, j * width,  (i + 1) * height);
-            if ( cells[i][j]->get_top_edge() )
-                painter->drawLine(j * width,  i * height, (j + 1) * width, i * height);
-            if ( cells[i][j]->get_right_edge() )
-                painter->drawLine((j + 1) * width,  i * height, (j + 1) * width, (i + 1) * height);
-            if ( cells[i][j]->get_bottom_edge() )
-                painter->drawLine(j * width,  (i + 1) * height, (j + 1) * width, (i + 1) * height);
-        }
-*/
-    pen.setColor(Qt::green);
-    painter->setPen(pen);
-    painter->setBrush(QBrush(Qt::green));
-    painter->drawEllipse(pm->width()-10,pm->height()-10,12,12);
-    // painter->drawEllipse(0,10,12,12);
-    pen.setColor(Qt::red);
-    // красный контур - нет гравитации
-    // cиний - влево
-    if (grav_direction == 2)
+    if (!just_won)
     {
-        pen.setColor(Qt::cyan);
-    }
-    // желтый - вниз
-    if (grav_direction == 3)
-    {
-        pen.setColor(Qt::yellow);
-    }
-    // розовый - вправо
-    if (grav_direction == 0)
-    {
-        pen.setColor(Qt::magenta);
-    }
-    // белый - вверх
-    if (grav_direction == 1)
-    {
-        pen.setColor(Qt::white);
-    }
-
-    painter->setBrush(QBrush(Qt::red));
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawEllipse(x,y,r,r);
-
-    im = pm->toImage();
-
-    QColor color;
-    // проверяем путь вниз
-    int check = 0;
-    for (int i = 0; i<=r; i++){
-        color = im.pixel(x+i,y+r+1);
-        if (color.name() ==  "#a0a0a4")
-            check++;
-    }
-    if (check != 0)
-        bottom = false; // вниз нельзя
-    // проверяем путь вверх
-    check = 0;
-    for (int i = 0; i<=r; i++){
-        color = im.pixel(x+i,y-1);
-        if (color.name() ==  "#a0a0a4")
-            check++;
-    }
-    if (check != 0)
-        up = false; // вверх нельзя
-
-    // проверяем путь вправо
-    check = 0;
-    for (int i = 0; i<=r; i++){
-        color = im.pixel(x+r+1,y+i);
-        if (color.name() ==  "#a0a0a4")
-            check++;
-    }
-    if (check != 0)
-        right = false; // вправо нельзя
-    // проверяем путь влево
-    check = 0;
-    for (int i = 0; i<=r; i++){
-        color = im.pixel(x-1,y+i);
-        if (color.name() ==  "#a0a0a4")
-            check++;
-    }
-    if (check != 0)
-        left = false; // влево нельзя
-    //
-    color = im.pixel(x+r+1,y+r+1);
-
-    if (color.name() == "#00ff00"){
-        // добрались до финиша
-        tmr->stop();
+        QPen pen;
         painter->setBrush(QBrush(Qt::black));
-        painter->drawRect(QRectF(0,0,pm->width(),pm->height()));
-        painter->drawText(QRectF(pm->width()/2-10,pm->height()/2-10,100,100),"YOU WIN");
-        ui->pushButton_generate->setFocus();
-        ui->pushButton_generate->setEnabled(true);
-        clearCells();
-    }
+        // красный контур - нет гравитации
+        // cиний - влево
+        if (grav_direction == 2)
+        {
+            pen.setColor(Qt::cyan);
+            painter->setBrush(QBrush(Qt::cyan));
+        }
+        // желтый - вниз
+        if (grav_direction == 3)
+        {
+           pen.setColor(Qt::yellow);
+            painter->setBrush(QBrush(Qt::yellow));
+        }
+        // розовый - вправо
+        if (grav_direction == 0)
+        {
+            pen.setColor(Qt::magenta);
+            painter->setBrush(QBrush(Qt::magenta));
+        }
+        // белый - вверх
+        if (grav_direction == 1)
+        {
+            pen.setColor(Qt::white);
+            painter->setBrush(QBrush(Qt::white));
+        }
 
-    painter->setBrush(QBrush(Qt::black));
-    scene->clear();
-    scene->addPixmap(*pm);
-    //qDebug()<<x<<","<<y<<" l "<<left<<" r "<<right<<" u "<<up<<" b "<<bottom;
+       // pen.setWidth(1);
+        painter->setPen(pen);
+        painter->drawEllipse(x,y,r,r);
+
+        im = pm->toImage();
+
+        QColor color;
+        // проверяем путь вниз
+        int check = 0;
+        for (int i = 0; i<=r; i++){
+            color = im.pixel(x+i,y+r+1);
+            if (color.name() ==  "#a0a0a4")
+                check++;
+        }
+        if (check != 0)
+            bottom = false; // вниз нельзя
+        // проверяем путь вверх
+        check = 0;
+        for (int i = 0; i<=r; i++){
+            color = im.pixel(x+i,y-1);
+            if (color.name() ==  "#a0a0a4")
+                check++;
+        }
+        if (check != 0)
+            up = false; // вверх нельзя
+
+        // проверяем путь вправо
+        check = 0;
+        for (int i = 0; i<=r; i++){
+            color = im.pixel(x+r+1,y+i);
+            if (color.name() ==  "#a0a0a4")
+                check++;
+        }
+        if (check != 0)
+            right = false; // вправо нельзя
+        // проверяем путь влево
+        check = 0;
+        for (int i = 0; i<=r; i++){
+            color = im.pixel(x-1,y+i);
+            if (color.name() ==  "#a0a0a4")
+                check++;
+        }
+        if (check != 0)
+            left = false; // влево нельзя
+        //
+        color = im.pixel(x+r+1,y+r+1);
+
+        if (color.name() == "#00ff00"){
+            // добрались до финиша
+            tmr->stop();
+            time_d = time_d.number(your_time->elapsed()/1000);
+            time_r = time_r.number(your_time->elapsed()%1000);
+            painter->setBrush(QBrush(Qt::black));
+            painter->drawRect(QRectF(0,0,pm->width(),pm->height()));
+            font->setPointSize(12);
+            font->setWeight( QFont::Bold );
+            painter->setFont(*font);
+            painter->drawText(QRectF(pm->width()/2-70,pm->height()/2-10,400,400),"Your time is "+time_d+","+time_r+" s");
+            //qDebug() << time_d << "," <<time_r;
+            //unBlockInterface();
+            ui->pushButton_generate->setFocus();
+            ui->pushButton_generate->setEnabled(true);
+            just_won = true; // выиграл, пока не нажал Генерация, ничего рисовать не надо
+            clearCells();
+        }
+
+        painter->setBrush(QBrush(Qt::black));
+        scene->clear();
+
+        scene->addPixmap(*pm);
+        //qDebug()<<x<<","<<y<<" l "<<left<<" r "<<right<<" u "<<up<<" b "<<bottom;
+    }
 }
 
-void MainWindow::generate(){
-    x = r-1;
-    y = r-1;
+void MainWindow::generate()
+{
+    complexity = 1;
+    key_up_pressed = false;
+    key_down_pressed = false;
+    key_left_pressed = false;
+    key_right_pressed = false;
+    timer_tick_counter = gravity_level+ (qrand() % 100);
+    x = indent + r-1;
+    y = indent + r-1;
     clearCells();
     generate(cells_h, cells_v, 0, 0);
     grav_direction = qrand() % 4;
     emitGenerationComplete();
+    painter->setPen(QPen(Qt::gray));
     painter->drawRect(2,2,pm->width()-2,pm->height()-2);
     painter->setPen(QPen(Qt::gray, 5));
     for (int i = 0; i < cells_v; i++)
         for (int j = 0; j < cells_h; j++) {
             if ( cells[i][j]->get_left_edge() ) //
-                painter->drawLine(j * width,  i * height, j * width,  (i + 1) * height);
+                painter->drawLine(j * width + indent,  i * height + indent, j * width + indent,  (i + 1) * height + indent);
             if ( cells[i][j]->get_top_edge() )
-                painter->drawLine(j * width,  i * height, (j + 1) * width, i * height);
+                painter->drawLine(j * width + indent,  i * height + indent, (j + 1) * width + indent, i * height + indent);
             if ( cells[i][j]->get_right_edge() )
-                painter->drawLine((j + 1) * width,  i * height, (j + 1) * width, (i + 1) * height);
+                painter->drawLine((j + 1) * width + indent,  i * height + indent, (j + 1) * width + indent, (i + 1) * height + indent);
             if ( cells[i][j]->get_bottom_edge() )
-                painter->drawLine(j * width,  (i + 1) * height, (j + 1) * width, (i + 1) * height);
+                painter->drawLine(j * width + indent,  (i + 1) * height + indent, (j + 1) * width + indent, (i + 1) * height + indent);
         }
     // cиний - влево
     //if (grav_direction == 2)
     // {
     //pen.setColor(Qt::cyan);
-    painter->setPen(QPen(Qt::cyan,2));
+    painter->setPen(QPen(Qt::cyan,indent*2-2));
     painter->drawLine(1,1,1,1000);
     // }
     // желтый - вниз
     //if (grav_direction == 3)
     //{
-    painter->setPen(QPen(Qt::yellow,2));
+    painter->setPen(QPen(Qt::yellow,indent*2-2));
     painter->drawLine(1,pm->height(),1000,pm->height());
     //}
     // розовый - вправо
     //if (grav_direction == 0)
     //{
-    painter->setPen(QPen(Qt::magenta,2));
+    painter->setPen(QPen(Qt::magenta,indent*2-2));
     painter->drawLine(pm->width(),1,pm->width(),1000);
     //}
     // белый - вверх
     //if (grav_direction == 1)
     //{
-    painter->setPen(QPen(Qt::white,2));
+    painter->setPen(QPen(Qt::white,indent*2-2));
     painter->drawLine(1,1,1000,1);
     //}
-     tmr->start(100);
-     key_tmr->start(30);
+    QPen pen(Qt::gray, 2);
+    painter->setPen(pen);
+
+    pen.setColor(Qt::green);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    painter->setBrush(QBrush(Qt::darkGreen));
+    //painter->drawEllipse(60,60,30,30);
+    painter->drawEllipse(indent+400-8,indent+400-8,12,12);
+    just_won = false; // начал игру, еще не выиграл
+
+    your_time->start();
+    tmr->start(100);
+    key_tmr->start(30);
     repaint();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent * e)
 {
     switch (e->key())
-        {
-        case Qt::Key_Escape:
-            this->close();
-            return;
-        case Qt::Key_Up:
-            key_up_pressed = true;
-            break;
-        case Qt::Key_Down:
-            key_down_pressed = true;
-            break;
-        case Qt::Key_Left:
-            key_left_pressed = true;
-            break;
-        case Qt::Key_Right:
-            key_right_pressed = true;
-            break;
-        default:
-            e->ignore();
-        }
+    {
+    case Qt::Key_Escape:
+        this->close();
+        return;
+    case Qt::Key_Up:
+        key_up_pressed = true;
+        break;
+    case Qt::Key_Down:
+        key_down_pressed = true;
+        break;
+    case Qt::Key_Left:
+        key_left_pressed = true;
+        break;
+    case Qt::Key_Right:
+        key_right_pressed = true;
+        break;
+    default:
+        e->ignore();
+    }
 }
 
-void MainWindow::keyReleaseEvent(QKeyEvent * e)
+void MainWindow::keyReleaseEvent(QKeyEvent *e)
 {
     switch (e->key())
-        {
-        case Qt::Key_Escape:
-            this->close();
-            return;
-        case Qt::Key_Up:
-            key_up_pressed = false;
-            break;
-        case Qt::Key_Down:
-            key_down_pressed = false;
-            break;
-        case Qt::Key_Left:
-            key_left_pressed = false;
-            break;
-        case Qt::Key_Right:
-            key_right_pressed = false;
-            break;
-        default:
-            e->ignore();
-        }
+    {
+    case Qt::Key_Escape:
+        this->close();
+        return;
+    case Qt::Key_Up:
+        key_up_pressed = false;
+        break;
+    case Qt::Key_Down:
+        key_down_pressed = false;
+        break;
+    case Qt::Key_Left:
+        key_left_pressed = false;
+        break;
+    case Qt::Key_Right:
+        key_right_pressed = false;
+        break;
+    default:
+        e->ignore();
+    }
 }
 
-//void MainWindow::keyReleaseEvent(QKeyEvent *e)
-//{
-//    QPen pen;
-//    pen.setColor(Qt::black);
-//    painter->setBrush(QBrush(Qt::black));
-//    pen.setWidth(1);
-//    painter->setPen(pen);
-//    painter->drawEllipse(x,y,r,r);
-//    switch (e->key())
-//    {
-//    case Qt::Key_Escape:
-//        this->close();
-//        return;
-//    case Qt::Key_Up:
-//        if (up){
-//            y=y-1;
-//            if (y < 0)
-//                y=0;
-//        }
-//        //  qDebug() << "y ="<< y;
-//        break;
-//    case Qt::Key_Down:
-//        if (bottom){
-//            y=y+1;
-//            if (y >= pm->height()-r)
-//                y=pm->height()-1;
-//        }
-//        //  qDebug() << "y ="<< y;
-//        break;
-//    case Qt::Key_Left:
-//        if (left){
-//            x=x-1;
-//            if (x < 0)
-//                x=0;
-//        }
-//        //  qDebug() << "x ="<< x;
-//        break;
-//    case Qt::Key_Right:
-//        if (right){
-//            x=x+1;
-//            if (x >= pm->width())
-//                x=pm->width()-1;
-//        }
-//        //  qDebug() << "x ="<< x;
-//        break;
-//    default:
-//        e->ignore();
-//    }
-//    left = true;
-//    right = true;
-//    bottom = true;
-//    up = true;
-//    repaint();
-//}
 void MainWindow::Key_timerTick()
 {
     if(!(key_down_pressed||key_left_pressed||key_right_pressed||key_up_pressed))return;
@@ -395,79 +367,17 @@ void MainWindow::Key_timerTick()
 
 }
 
-//void MainWindow::keyPressEvent(QKeyEvent * e)
-//{
-//    QPen pen;
-//    pen.setColor(Qt::black);
-//    painter->setBrush(QBrush(Qt::black));
-//    pen.setWidth(1);
-//    painter->setPen(pen);
-//    painter->drawEllipse(x,y,r,r);
-//    switch (e->key())
-//    {
-//    case Qt::Key_Escape:
-//        this->close();
-//        return;
-//    case Qt::Key_Up:
-//        if (up){
-//            y=y-1;
-//            if (y < 0)
-//                y=0;
-//        }
-//        //  qDebug() << "y ="<< y;
-//        break;
-//    case Qt::Key_Down:
-//        if (bottom){
-//            y=y+1;
-//            if (y >= pm->height()-r)
-//                y=pm->height()-1;
-//        }
-//        //  qDebug() << "y ="<< y;
-//        break;
-//    case Qt::Key_Left:
-//        if (left){
-//            x=x-1;
-//            if (x < 0)
-//                x=0;
-//        }
-//        //  qDebug() << "x ="<< x;
-//        break;
-//    case Qt::Key_Right:
-//        if (right){
-//            x=x+1;
-//            if (x >= pm->width())
-//                x=pm->width()-1;
-//        }
-//        //  qDebug() << "x ="<< x;
-//        break;
-//    default:
-//        e->ignore();
-//    }
-//    left = true;
-//    right = true;
-//    bottom = true;
-//    up = true;
-//    repaint();
-//    //scene->update();
-//}
-
-MainWindow::~MainWindow()
-{
-    cleareMaze();
-    delete ui;
-}
-
 void MainWindow::blockInterface() {
     ui->pushButton_generate->setDisabled(true);
-    //ui->graphicsView->setFocus();
-    //ui->pushButton_search->setDisabled(true);
+    ui->gravity_level->setDisabled(true);
+    ui->maze_level->setDisabled(true);
 }
 
 void MainWindow::unBlockInterface() {
     ui->pushButton_generate->setEnabled(true);
-    // ui->pushButton_search->setEnabled(true);
+    ui->gravity_level->setEnabled(true);
+    ui->maze_level->setEnabled(true);
 }
-
 
 void MainWindow::clearCells() {
     for (int i = 0; i < cells_v; i++)
@@ -489,11 +399,10 @@ void MainWindow::clearCells() {
         }
 }
 
-
 void MainWindow::generate(int nH, int nV, int sH, int sV) {
 
     // 1) если комната в длинну или ширину равна 1 ячейке, то внутри уже нельзя ничего генерировать => выходим
-    if ( (nH == 1 || nV == 1) )
+    if ( (nH <= complexity || nV <= complexity) )
         return;
 
     // 2) если все стороны больше чем в две ячейки, продолжаем выполнять всё что ниже
@@ -616,7 +525,6 @@ void MainWindow::initMaze(){
     clearCells();
 }
 
-
 void MainWindow::cleareMaze(){
     // Освобождаем выделенную ранее память
     for (int i = 0; i < cells_h; i++)
@@ -635,3 +543,21 @@ void MainWindow::cleareMaze(){
 
 }
 
+MainWindow::~MainWindow()
+{
+    cleareMaze();
+    delete ui;
+}
+
+void MainWindow::on_maze_level_sliderMoved(int position)
+{
+    qDebug()<<"on_maze_level_sliderMoved"<<position;
+    //maze_level = position;
+}
+
+void MainWindow::on_gravity_level_sliderMoved(int position)
+{
+
+    gravity_level = position*10;
+    qDebug()<<"on_gravity_level_sliderMoved"<<gravity_level;
+}

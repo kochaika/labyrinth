@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>486</height>
+    <width>488</width>
+    <height>753</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QGraphicsView" name="graphicsView">
       <property name="focusPolicy">
@@ -29,13 +29,79 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="pushButton_generate">
+        <property name="font">
+         <font>
+          <family>Nyala</family>
+          <pointsize>14</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
         <property name="text">
-         <string>Генерация</string>
+         <string>Generate</string>
         </property>
        </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="labels_layout">
+        <item>
+         <widget class="QLabel" name="label_gravity_level">
+          <property name="font">
+           <font>
+            <family>PMingLiU-ExtB</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <italic>false</italic>
+            <bold>true</bold>
+            <underline>false</underline>
+           </font>
+          </property>
+          <property name="text">
+           <string>Level of gravity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_maze_level">
+          <property name="font">
+           <font>
+            <family>PMingLiU-ExtB</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Number of rooms maze</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="sliders_layout">
+        <item>
+         <widget class="QSlider" name="gravity_level">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="maze_level">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -47,10 +113,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>442</width>
+     <width>488</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuLabyrinth">
+    <property name="title">
+     <string>Labyrinth</string>
+    </property>
+   </widget>
+   <addaction name="menuLabyrinth"/>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QPointF>
 #include <QPen>
 #include <QImage>
 #include <QRgb>
@@ -17,6 +18,8 @@
 #include "square.h"
 #include "QTime"
 #include <QTimer>
+#include <QDebug>
+#include <QTime>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +29,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
     QGraphicsScene *scene;
+    QGraphicsScene *back_scene;
     QPixmap *pm;
     QPixmap *maze_pm;
     QImage im;
@@ -33,6 +37,8 @@ class MainWindow : public QMainWindow
     QPainter *maze_painter;
     QBrush *brush;
     QPen *pen;
+    QFont *font;
+    QTime *your_time;
     int x;
     int y;
     int r;
@@ -40,13 +46,20 @@ class MainWindow : public QMainWindow
     bool key_down_pressed;
     bool key_left_pressed;
     bool key_right_pressed;
+    float user_time;
+    QString time_d;
+    QString time_r;
+    int indent; // отступ от края
     bool left;
     bool right;
     bool up;
     QTimer *tmr;
     QTimer *key_tmr;
     bool bottom;
+    bool just_won; // выиграл
     long timer_tick_counter;
+    int maze_level;
+    int gravity_level;
     //
         int grav_direction;
         //0 - Право
@@ -54,6 +67,7 @@ class MainWindow : public QMainWindow
         //2 - Лево
         //3 - Низ
    //
+    int complexity;                         // - сложность лабиринта. В идеале от 1 до 5 (не более)
     int cells_h; // ячеек по горизонтали
     int cells_v; // ячеек по вертикали
 
@@ -86,6 +100,7 @@ private:
 
 signals:
     void emitGenerationComplete();
+    void emitMazeComplete();
 
 public slots:
     void generate();
@@ -93,6 +108,9 @@ public slots:
     void unBlockInterface();
     void timerTick();
     void Key_timerTick();
+private slots:
+    void on_maze_level_sliderMoved(int position);
+    void on_gravity_level_sliderMoved(int position);
 };
 
 #endif // MAINWINDOW_H
