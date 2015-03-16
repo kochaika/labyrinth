@@ -3,6 +3,7 @@
 Results::Results(std::string file_path)
 {
    path = file_path;
+   LoadResults();
 }
 
 void Results::LoadResults()
@@ -10,7 +11,8 @@ void Results::LoadResults()
     std::ifstream inp;
     double d;
     std::string s;
-    inp.open(path+std::string("/results.txt"));
+    std::string Path = path+std::string("/results.txt");
+    inp.open(Path.c_str());
     if(!inp.is_open()) return;
     data.clear();
     for(int i=0; i<5 && !inp.eof(); i++)
@@ -24,15 +26,15 @@ void Results::LoadResults()
     inp.close();
 }
 
-std::vector<std::pair<std::string,double>> Results::GetResults()
+std::vector<std::pair<std::string,double> > Results::GetResults()
 {
     return data;
 }
 
 void Results::AddResult(std::string name, double time)
 {
-    std::vector<std::pair<std::string,double>> data1;
-    std::vector<std::pair<std::string,double>>::iterator it;
+    std::vector<std::pair<std::string,double> > data1;
+    std::vector<std::pair<std::string,double> >::iterator it;
     bool flag = false;
     for(it=data.begin();it!=data.end();it++)
     {
@@ -58,7 +60,8 @@ void Results::AddResult(std::string name, double time)
     else
         data = data1;
     std::ofstream outp;
-    outp.open(path+std::string("/results.txt"));
+    std::string Path = path+std::string("/results.txt");
+    outp.open(Path.c_str());
     for(it=data.begin();it!=data.end();it++)
     {
         outp<<(*it).first<<'\n'<<(*it).second<<'\n';

@@ -20,6 +20,9 @@
 #include <QTimer>
 #include <QDebug>
 #include <QTime>
+#include <QDir>
+#include <QInputDialog>
+#include "result.h"
 
 namespace Ui {
 class MainWindow;
@@ -39,6 +42,9 @@ class MainWindow : public QMainWindow
     QPen *pen;
     QFont *font;
     QTime *your_time;
+
+    Results *res;
+
     int x;
     int y;
     int r;
@@ -49,7 +55,10 @@ class MainWindow : public QMainWindow
     float user_time;
     QString time_d;
     QString time_r;
+    QString input_uname;
+
     int indent; // отступ от края
+    double utime;
     bool left;
     bool right;
     bool up;
@@ -58,8 +67,8 @@ class MainWindow : public QMainWindow
     bool bottom;
     bool just_won; // выиграл
     long timer_tick_counter;
-    int maze_level;
-    int gravity_level;
+    int maze_level; //  сложность организации лабиринта
+    int gravity_level; // сила гравитации
     //
         int grav_direction;
         //0 - Право
