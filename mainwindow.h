@@ -76,7 +76,10 @@ class MainWindow : public QMainWindow
         //2 - Лево
         //3 - Низ
    //
-    int complexity;                         // - сложность лабиринта. В идеале от 1 до 5 (не более)
+    int complexity;                         // - сложность лабиринта. В идеале от 1 до 4
+    int gravity_time_average;
+    int gravity_time_dispersion;
+    int gravity_timer_time;
     int cells_h; // ячеек по горизонтали
     int cells_v; // ячеек по вертикали
 

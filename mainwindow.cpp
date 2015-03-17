@@ -6,7 +6,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    res = new Results("c:"); //файлик будет в корне диска С
+    gravity_time_average = 40;
+    gravity_time_dispersion = 50;
+    //gravity_timer_time = 40;
+    on_gravity_level_sliderMoved(1);
+    on_maze_level_sliderMoved(1);
+    res = new Results(".");
 //    std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
 //    std::vector<std::pair<std::string,double> >::iterator it;
 //    //вывели
@@ -85,7 +90,7 @@ void MainWindow::timerTick()
     timer_tick_counter--;
     if(timer_tick_counter <0)
     {
-        timer_tick_counter = 50+ (qrand() % 50); //Можно менять сложность
+        timer_tick_counter = gravity_time_average + (qrand() % gravity_time_dispersion);
         grav_direction = qrand() % 4;
     }
     QPen pen;
@@ -267,12 +272,11 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
 
 void MainWindow::generate()
 {
-    complexity = 1;
     key_up_pressed = false;
     key_down_pressed = false;
     key_left_pressed = false;
     key_right_pressed = false;
-    timer_tick_counter = gravity_level+ (qrand() % 100);
+    timer_tick_counter = gravity_time_average + (qrand() % gravity_time_dispersion);    // Гравитация <=======================> (!!!!!!!!!!!!!)
     x = indent + r-1;
     y = indent + r-1;
     clearCells();
@@ -330,8 +334,8 @@ void MainWindow::generate()
     just_won = false; // начал игру, еще не выиграл
 
     your_time->start();
-    tmr->start(100);
-    key_tmr->start(30);
+    tmr->start(gravity_timer_time);
+    key_tmr->start(25);
     repaint();
 }
 
@@ -612,13 +616,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_maze_level_sliderMoved(int position)
 {
+    //qDebug()<<"old complexity = "<<complexity;
     maze_level = position;
-    qDebug()<<"on_maze_level_sliderMoved"<<position;
+    complexity = 5-maze_level;
+    //qDebug()<<"complexity = "<<complexity;
 }
 
 void MainWindow::on_gravity_level_sliderMoved(int position)
 {
-
-    gravity_level = position*10;
-    qDebug()<<"on_gravity_level_sliderMoved"<<gravity_level;
+    gravity_timer_time = 34+6*(11-position);
+    gravity_time_average = 20+5*(11-position);
+    gravity_time_dispersion = gravity_time_average;
+    //qDebug()<<"on_gravity_level_sliderMoved"<<gravity_timer_time;
 }

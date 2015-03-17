@@ -13,7 +13,11 @@ void Results::LoadResults()
     std::string s;
     std::string Path = path+std::string("/results.txt");
     inp.open(Path.c_str());
-    if(!inp.is_open()) return;
+    if(!inp.is_open())
+    {
+        //qDebug()<<"FileErr";
+        return;
+    }
     data.clear();
     for(int i=0; i<5 && !inp.eof(); i++)
     {
