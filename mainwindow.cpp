@@ -37,9 +37,9 @@ MainWindow::MainWindow(QWidget *parent) :
     key_tmr = new QTimer(this);
     connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
 
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerDone()));
-    timer->start(10);
+//    timer = new QTimer(this);
+    //connect(timer, SIGNAL(timeout()), this, SLOT(timerDone()));
+//    timer->start(10);
     caption = "";
 
     gravity_level = 50;
@@ -90,10 +90,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->setScene(scene);
 
     std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
-    std::vector<std::pair<std::string,double> >::iterator it;
-    it = data.begin();
-    std::pair<std::string,double> temp = *it;
-    time_d = time_d.number(temp.second);
+    if(!data.empty())
+    {
+        std::vector<std::pair<std::string,double> >::iterator it;
+        it = data.begin();
+        std::pair<std::string,double> temp = *it;
+        time_d = time_d.number(temp.second);
+    }
+    else
+        time_d = "-";
     ui->best_time_view->setText(time_d);
 
     ui->your_time_view->setText("Let's play");
