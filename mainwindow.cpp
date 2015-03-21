@@ -271,16 +271,9 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
                 std::pair<std::string,double> temp = *it;
                 time_d = time_d.number(temp.second);
                 //qDebug() << input_uname << " сравниваем с " << QString(temp.first.c_str());
-                if (input_uname == QString(temp.first.c_str())){
-                    //painter->setPen(QPen(Qt::red));
-                    font->setPointSize(11);
-                    font->setItalic(true);
-                    painter->setFont(*font);
-                }
+
                 painter->drawText(QRectF(pm->width()/2-100,pm->height()/2-80+15*i,400,400),QString::fromUtf8(temp.first.c_str())+"'s time is "+time_d+" s");
-                font->setItalic(false);
-                font->setPointSize(10);
-                painter->setFont(*font);
+
             }
 
             it = data.begin();
