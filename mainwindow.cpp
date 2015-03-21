@@ -12,30 +12,35 @@ MainWindow::MainWindow(QWidget *parent) :
     on_gravity_level_sliderMoved(1);
     on_maze_level_sliderMoved(1);
     res = new Results(".");
-//    std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
-//    std::vector<std::pair<std::string,double> >::iterator it;
-//    //вывели
-//    for(it=data.begin();it!=data.end();it++)
-//    {
-//        std::pair<std::string,double> temp = *it;
-//        qDebug()<<temp.first.c_str();
-//        qDebug()<<temp.second;
-//    }
-//    //добавили
-//    res->AddResult("User 1.0",1.0);
-//    //получили результаты
-//    data = res->GetResults();
-//    //вывели
-//    for(it=data.begin();it!=data.end();it++)
-//    {
-//        std::pair<std::string,double> temp = *it;
-//        qDebug()<<temp.first.c_str();
-//        qDebug()<<temp.second;
-//    }
+/*    std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
+    std::vector<std::pair<std::string,double> >::iterator it;
+    //вывели
+    for(it=data.begin();it!=data.end();it++)
+    {
+        std::pair<std::string,double> temp = *it;
+        qDebug()<<temp.first.c_str();
+        qDebug()<<temp.second;
+    }
+    //добавили
+    res->AddResult("User 1.0",1.0);
+    //получили результаты
+    data = res->GetResults();
+    //вывели
+    for(it=data.begin();it!=data.end();it++)
+    {
+        std::pair<std::string,double> temp = *it;
+        qDebug()<<temp.first.c_str();
+        qDebug()<<temp.second;
+    }*/
 
     tmr = new QTimer(this);
     key_tmr = new QTimer(this);
     connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(timerDone()));
+    timer->start(10);
+    caption = "";
 
     gravity_level = 50;
     maze_level = 2;
@@ -55,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->gravity_level->setMinimum(1);
     ui->gravity_level->setMaximum(10);
 
-    this->setFixedSize(500,660);
+    this->setFixedSize(500,645);
     ui->graphicsView->setFixedSize(480,480);
     ui->graphicsView->setBackgroundBrush(QBrush(Qt::darkGray));
     scene = new QGraphicsScene(this);
@@ -68,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     painter = new QPainter(pm);
     font = new QFont("Bavaria");
+
     left = true; // налево - свободно
     right = true; // направо - свободно
     up = true; // вверх - свободно
@@ -83,6 +89,14 @@ MainWindow::MainWindow(QWidget *parent) :
     just_won = false;
     ui->graphicsView->setScene(scene);
 
+    std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
+    std::vector<std::pair<std::string,double> >::iterator it;
+    it = data.begin();
+    std::pair<std::string,double> temp = *it;
+    time_d = time_d.number(temp.second);
+    ui->best_time_view->setText(time_d);
+
+    ui->your_time_view->setText("Let's play");
 }
 
 void MainWindow::timerTick()
@@ -211,6 +225,11 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
         //
         color = im.pixel(x+r+1,y+r+1);
 
+        utime = (double)your_time->elapsed()/1000;
+        caption_time = QString("%1").
+                arg(utime);
+        ui->your_time_view->setText(caption_time);
+
         if (color.name() == "#00ff00"){
             // добрались до финиша
             just_won = true; // выиграл, пока не нажал Генерация, ничего рисовать не надо
@@ -251,12 +270,24 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
             {
                 std::pair<std::string,double> temp = *it;
                 time_d = time_d.number(temp.second);
-                //time_r = time_r.number(temp.second%1000.0);
+                //qDebug() << input_uname << " сравниваем с " << QString(temp.first.c_str());
+                if (input_uname == QString(temp.first.c_str())){
+                    //painter->setPen(QPen(Qt::red));
+                    font->setPointSize(11);
+                    font->setItalic(true);
+                    painter->setFont(*font);
+                }
                 painter->drawText(QRectF(pm->width()/2-100,pm->height()/2-80+15*i,400,400),QString::fromUtf8(temp.first.c_str())+"'s time is "+time_d+" s");
-                qDebug()<<temp.first.c_str();
-                qDebug()<<temp.second;
+                font->setItalic(false);
+                font->setPointSize(10);
+                painter->setFont(*font);
             }
 
+            it = data.begin();
+            std::pair<std::string,double> temp = *it;
+            time_d = time_d.number(temp.second);
+            ui->best_time_view->setText(time_d);
+            ui->your_time_view->setText("Let's play again!");
             ui->pushButton_generate->setFocus();
             ui->pushButton_generate->setEnabled(true);
 

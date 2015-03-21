@@ -22,6 +22,7 @@
 #include <QTime>
 #include <QDir>
 #include <QInputDialog>
+#include <QFontDatabase>
 #include "result.h"
 
 namespace Ui {
@@ -42,7 +43,7 @@ class MainWindow : public QMainWindow
     QPen *pen;
     QFont *font;
     QTime *your_time;
-
+    QTimer *timer;
     Results *res;
 
     int x;
@@ -56,6 +57,8 @@ class MainWindow : public QMainWindow
     QString time_d;
     QString time_r;
     QString input_uname;
+    QString caption;
+    QString caption_time;
 
     int indent; // отступ от края
     double utime;
