@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+
+
 #include <QMainWindow>
 #include <QPixmap>
 #include <QWidget>
@@ -23,7 +25,10 @@
 #include <QDir>
 #include <QInputDialog>
 #include <QFontDatabase>
+#include <QScreen>
+#include <QtSensors/QAccelerometer>
 #include "result.h"
+
 
 namespace Ui {
 class MainWindow;
@@ -45,7 +50,9 @@ class MainWindow : public QMainWindow
     QTime *your_time;
     QTimer *timer;
     Results *res;
+//    QAccelerometer *sensor;
 
+    int scale;
     int x;
     int y;
     int r;
@@ -60,6 +67,10 @@ class MainWindow : public QMainWindow
     QString caption;
     QString caption_time;
 
+    qreal xAccel;
+    qreal yAccel;
+    qreal zAccel;
+
     int indent; // отступ от края
     double utime;
     bool left;
@@ -70,6 +81,7 @@ class MainWindow : public QMainWindow
     bool bottom;
     bool just_won; // выиграл
     long timer_tick_counter;
+    long accel_tick_counter;
     int maze_level; //  сложность организации лабиринта
     int gravity_level; // сила гравитации
     //
@@ -83,6 +95,9 @@ class MainWindow : public QMainWindow
     int gravity_time_average;
     int gravity_time_dispersion;
     int gravity_timer_time;
+    int accel_timer_time;
+    int accel_time_average;
+    int accel_time_dispersion;
     int cells_h; // ячеек по горизонтали
     int cells_v; // ячеек по вертикали
 
@@ -104,8 +119,8 @@ class MainWindow : public QMainWindow
 
 public:
     virtual void paintEvent(QPaintEvent * /*event*/);
-    virtual void keyPressEvent(QKeyEvent *e);
-    virtual void keyReleaseEvent(QKeyEvent *e);
+   // virtual void keyPressEvent(QKeyEvent *e);
+  //  virtual void keyReleaseEvent(QKeyEvent *e);
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();

@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += sensors
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -23,3 +24,14 @@ HEADERS  += mainwindow.h \
     result.h
 
 FORMS    += mainwindow.ui
+
+DISTFILES += \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/AndroidManifest.xml \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android

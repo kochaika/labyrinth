@@ -9,37 +9,15 @@ MainWindow::MainWindow(QWidget *parent) :
     gravity_time_average = 40;
     gravity_time_dispersion = 50;
     //gravity_timer_time = 40;
+    accel_timer_time = 25;
+    accel_time_dispersion = accel_timer_time;
     on_gravity_level_sliderMoved(1);
     on_maze_level_sliderMoved(1);
     res = new Results(".");
-/*    std::vector<std::pair<std::string,double> > data = res->GetResults(); //получили результаты
-    std::vector<std::pair<std::string,double> >::iterator it;
-    //вывели
-    for(it=data.begin();it!=data.end();it++)
-    {
-        std::pair<std::string,double> temp = *it;
-        qDebug()<<temp.first.c_str();
-        qDebug()<<temp.second;
-    }
-    //добавили
-    res->AddResult("User 1.0",1.0);
-    //получили результаты
-    data = res->GetResults();
-    //вывели
-    for(it=data.begin();it!=data.end();it++)
-    {
-        std::pair<std::string,double> temp = *it;
-        qDebug()<<temp.first.c_str();
-        qDebug()<<temp.second;
-    }*/
-
     tmr = new QTimer(this);
     key_tmr = new QTimer(this);
-    connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+    //connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
 
-//    timer = new QTimer(this);
-    //connect(timer, SIGNAL(timeout()), this, SLOT(timerDone()));
-//    timer->start(10);
     caption = "";
 
     gravity_level = 50;
@@ -74,10 +52,10 @@ MainWindow::MainWindow(QWidget *parent) :
     painter = new QPainter(pm);
     font = new QFont("Bavaria");
 
-    left = true; // налево - свободно
-    right = true; // направо - свободно
-    up = true; // вверх - свободно
-    bottom = true; // вниз - свободно
+    left = true;    // налево - свободно
+    right = true;   // направо - свободно
+    up = true;      // вверх - свободно
+    bottom = true;  // вниз - свободно
     r = 7;
     indent = 35;
     x = indent + r-1;
@@ -102,53 +80,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->best_time_view->setText(time_d);
 
     ui->your_time_view->setText("Let's play");
-}
-
-void MainWindow::timerTick()
-{
-    timer_tick_counter--;
-    if(timer_tick_counter <0)
-    {
-        timer_tick_counter = gravity_time_average + (qrand() % gravity_time_dispersion);
-        grav_direction = qrand() % 4;
-    }
-    QPen pen;
-    pen.setColor(Qt::black);
-    painter->setBrush(QBrush(Qt::black));
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawEllipse(x,y,r,r);
-    switch (grav_direction) {
-    case 0: // вправо
-        if (right){
-            x=x+1;
-            if (x >= pm->width())
-                x=pm->width()-1;
-        }
-        break;
-    case 1: // вверх
-        if (up){
-            y=y-1;
-            if (y < 0)
-                y=0;
-        }
-        break;
-    case 2: // влево
-        if (left){
-            x=x-1;
-            if (x < 0)
-                x=0;
-        }
-        break;
-    case 3: // вниз
-        if (bottom){
-            y=y+1;
-            if (y >= pm->height()-r)
-                y=pm->height()-1;
-        }
-        break;
-    }
-    repaint();
 }
 
 void MainWindow::paintEvent(QPaintEvent * /*event*/)
@@ -184,8 +115,10 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
         }
 
         // pen.setWidth(1);
-        painter->setPen(pen);
-        painter->drawEllipse(x,y,r,r);
+        if (left||right||bottom||up){
+            painter->setPen(pen);
+            painter->drawEllipse(x,y,r,r);
+        }
 
         im = pm->toImage();
 
@@ -231,8 +164,7 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
         color = im.pixel(x+r+1,y+r+1);
 
         utime = (double)your_time->elapsed()/1000;
-        caption_time = QString("%1").
-                arg(utime);
+        caption_time = QString("%1").arg(utime);
         ui->your_time_view->setText(caption_time);
 
         if (color.name() == "#00ff00"){
@@ -275,8 +207,6 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
             {
                 std::pair<std::string,double> temp = *it;
                 time_d = time_d.number(temp.second);
-                //qDebug() << input_uname << " сравниваем с " << QString(temp.first.c_str());
-
                 painter->drawText(QRectF(pm->width()/2-100,pm->height()/2-80+15*i,400,400),QString::fromUtf8(temp.first.c_str())+"'s time is "+time_d+" s");
 
             }
@@ -296,7 +226,122 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
         scene->clear();
 
         scene->addPixmap(*pm);
+      /* zAccel = reading3->property("z").value<qreal>();
+        qDebug()<<xAccel;
+        qDebug()<<yAccel;
+        qDebug()<<zAccel;*/
     }
+}
+
+
+
+void MainWindow::Key_timerTick()
+{
+    QSensor sensor3("QAccelerometer");
+    sensor3.start();
+    QSensorReading *reading3 = sensor3.reading();
+
+    xAccel = reading3->property("x").value<qreal>();
+    yAccel = reading3->property("y").value<qreal>();
+    zAccel = reading3->property("z").value<qreal>();
+
+    QPen pen;
+    pen.setColor(Qt::black);
+    painter->setBrush(QBrush(Qt::black));
+    pen.setWidth(1);
+    painter->setPen(pen);
+    painter->drawEllipse(x,y,r,r);
+
+    if (xAccel > 0){
+       if (left){
+           x=x-1;
+           if (x < 0)
+               x=0;
+
+       }
+ //       qDebug()<<"ВЛЕВО *******************************************"<<xAccel;
+    }
+    if (xAccel < 0){
+        if (right){
+            x=x+1;
+            if (x >= pm->width())
+                x=pm->width()-1;
+        }
+ //       qDebug()<<"ВПРАВО *******************************************"<<xAccel;
+    }
+
+    if (yAccel < 0){
+//        qDebug()<<"ВВЕРХ *******************************************"<<yAccel;
+        if (up){
+            y=y-1;
+            if (y < 0)
+                y=0;
+        }
+    }
+    if (yAccel > 0){
+//        qDebug()<<"ВНИЗ *******************************************"<<yAccel;
+        if (bottom){
+            y=y+1;
+            if (y >= pm->height()-r)
+                y=pm->height()-1;
+        }
+    }
+
+    left = true;
+    right = true;
+    bottom = true;
+    up = true;
+    repaint();
+}
+
+void MainWindow::timerTick()
+{
+    timer_tick_counter--;
+    if(timer_tick_counter <0)
+    {
+        timer_tick_counter = gravity_time_average + (qrand() % gravity_time_dispersion);
+        grav_direction = qrand() % 4;
+    }
+    QPen pen;
+    pen.setColor(Qt::black);
+    painter->setBrush(QBrush(Qt::black));
+    pen.setWidth(1);
+    painter->setPen(pen);
+    painter->drawEllipse(x,y,r,r);
+    switch(grav_direction){
+    case 0:
+        if (right){
+            x=x+1;
+            if (x >= pm->width())
+                x=pm->width()-1;
+        }
+        break;
+    case 1:
+        if (up){
+            y=y-1;
+            if (y < 0)
+                y=0;
+        }
+        break;
+    case 2:
+        if (left){
+            x=x-1;
+            if (x < 0)
+                x=0;
+        }
+        break;
+    case 3:
+        if (bottom){
+            y=y+1;
+            if (y >= pm->height()-r)
+                y=pm->height()-1;
+        }
+        break;
+     default:
+
+        break;
+    }
+    repaint();
 }
 
 void MainWindow::generate()
@@ -306,6 +351,7 @@ void MainWindow::generate()
     key_left_pressed = false;
     key_right_pressed = false;
     timer_tick_counter = gravity_time_average + (qrand() % gravity_time_dispersion);    // Гравитация <=======================> (!!!!!!!!!!!!!)
+ //   accel_tick_counter = accel_time_average + (qrand() % accel_time_dispersion);    // Акселерометр <=======================> (!!!!!!!!!!!!!)
     x = indent + r-1;
     y = indent + r-1;
     clearCells();
@@ -363,103 +409,11 @@ void MainWindow::generate()
     just_won = false; // начал игру, еще не выиграл
 
     your_time->start();
-    tmr->start(gravity_timer_time);
-    key_tmr->start(25);
+   // tmr->start(gravity_timer_time);
+    key_tmr->start(50);
     repaint();
 }
 
-void MainWindow::keyPressEvent(QKeyEvent * e)
-{
-    if (!just_won){
-
-        switch (e->key())
-        {
-        case Qt::Key_Escape:
-            this->close();
-            return;
-        case Qt::Key_Up:
-            key_up_pressed = true;
-            break;
-        case Qt::Key_Down:
-            key_down_pressed = true;
-            break;
-        case Qt::Key_Left:
-            key_left_pressed = true;
-            break;
-        case Qt::Key_Right:
-            key_right_pressed = true;
-            break;
-        default:
-            e->ignore();
-        }
-    }
-}
-
-void MainWindow::keyReleaseEvent(QKeyEvent *e)
-{
-    if (!just_won) {
-        switch (e->key())
-        {
-        case Qt::Key_Escape:
-            this->close();
-            return;
-        case Qt::Key_Up:
-            key_up_pressed = false;
-            break;
-        case Qt::Key_Down:
-            key_down_pressed = false;
-            break;
-        case Qt::Key_Left:
-            key_left_pressed = false;
-            break;
-        case Qt::Key_Right:
-            key_right_pressed = false;
-            break;
-        default:
-            e->ignore();
-        }
-    }
-}
-
-void MainWindow::Key_timerTick()
-{
-    if(!(key_down_pressed||key_left_pressed||key_right_pressed||key_up_pressed))return;
-    QPen pen;
-    pen.setColor(Qt::black);
-    painter->setBrush(QBrush(Qt::black));
-    pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawEllipse(x,y,r,r);
-    if (key_up_pressed && up){
-        y=y-1;
-        if (y < 0)
-            y=0;
-    }
-
-    if (key_down_pressed&&bottom){
-        y=y+1;
-        if (y >= pm->height()-r)
-            y=pm->height()-1;
-    }
-
-    if (key_left_pressed&&left){
-        x=x-1;
-        if (x < 0)
-            x=0;
-    }
-    if (key_right_pressed&&right){
-        x=x+1;
-        if (x >= pm->width())
-            x=pm->width()-1;
-    }
-
-    left = true;
-    right = true;
-    bottom = true;
-    up = true;
-    repaint();
-
-}
 
 void MainWindow::blockInterface() {
     ui->pushButton_generate->setDisabled(true);
