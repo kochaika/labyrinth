@@ -8,15 +8,17 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     gravity_time_average = 40;
     gravity_time_dispersion = 50;
-    //gravity_timer_time = 40;
-    accel_timer_time = 25;
-    accel_time_dispersion = accel_timer_time;
+
     on_gravity_level_sliderMoved(1);
     on_maze_level_sliderMoved(1);
     res = new Results(".");
     tmr = new QTimer(this);
     key_tmr = new QTimer(this);
-    //connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+    connect(tmr, SIGNAL(timeout()), this, SLOT(timerTick()));
+
+    sensor3 = new QSensor("QAccelerometer");
+    sensor3->start();
+    reading3 = sensor3->reading();
 
     caption = "";
 
@@ -115,11 +117,10 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
         }
 
         // pen.setWidth(1);
-        if (left||right||bottom||up){
             painter->setPen(pen);
             painter->drawEllipse(x,y,r,r);
-        }
 
+        qDebug()<<"PAINR EVENT !!!!!!!!!!!!!!!     "<<grav_direction<<"\n";
         im = pm->toImage();
 
         QColor color;
@@ -237,10 +238,6 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
 
 void MainWindow::Key_timerTick()
 {
-    QSensor sensor3("QAccelerometer");
-    sensor3.start();
-    QSensorReading *reading3 = sensor3.reading();
-
     xAccel = reading3->property("x").value<qreal>();
     yAccel = reading3->property("y").value<qreal>();
     zAccel = reading3->property("z").value<qreal>();
@@ -257,9 +254,7 @@ void MainWindow::Key_timerTick()
            x=x-1;
            if (x < 0)
                x=0;
-
        }
- //       qDebug()<<"ВЛЕВО *******************************************"<<xAccel;
     }
     if (xAccel < 0){
         if (right){
@@ -267,11 +262,8 @@ void MainWindow::Key_timerTick()
             if (x >= pm->width())
                 x=pm->width()-1;
         }
- //       qDebug()<<"ВПРАВО *******************************************"<<xAccel;
     }
-
     if (yAccel < 0){
-//        qDebug()<<"ВВЕРХ *******************************************"<<yAccel;
         if (up){
             y=y-1;
             if (y < 0)
@@ -279,7 +271,6 @@ void MainWindow::Key_timerTick()
         }
     }
     if (yAccel > 0){
-//        qDebug()<<"ВНИЗ *******************************************"<<yAccel;
         if (bottom){
             y=y+1;
             if (y >= pm->height()-r)
@@ -296,6 +287,7 @@ void MainWindow::Key_timerTick()
 
 void MainWindow::timerTick()
 {
+    qDebug()<<"TTTimerTick !!!!!!!!!!!!!!!    "<<grav_direction<<"\n";
     timer_tick_counter--;
     if(timer_tick_counter <0)
     {
@@ -336,9 +328,6 @@ void MainWindow::timerTick()
             if (y >= pm->height()-r)
                 y=pm->height()-1;
         }
-        break;
-     default:
-
         break;
     }
     repaint();
@@ -409,7 +398,7 @@ void MainWindow::generate()
     just_won = false; // начал игру, еще не выиграл
 
     your_time->start();
-   // tmr->start(gravity_timer_time);
+    tmr->start(gravity_timer_time);
     key_tmr->start(50);
     repaint();
 }

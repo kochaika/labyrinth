@@ -27,6 +27,8 @@
 #include <QFontDatabase>
 #include <QScreen>
 #include <QtSensors/QAccelerometer>
+#include <QSensorGestureManager>
+#include <QSensorGesture>
 #include "result.h"
 
 
@@ -50,6 +52,8 @@ class MainWindow : public QMainWindow
     QTime *your_time;
     QTimer *timer;
     Results *res;
+    QSensorReading *reading3;
+    QSensor *sensor3;
 //    QAccelerometer *sensor;
 
     int scale;
@@ -81,7 +85,6 @@ class MainWindow : public QMainWindow
     bool bottom;
     bool just_won; // выиграл
     long timer_tick_counter;
-    long accel_tick_counter;
     int maze_level; //  сложность организации лабиринта
     int gravity_level; // сила гравитации
     //
@@ -95,9 +98,6 @@ class MainWindow : public QMainWindow
     int gravity_time_average;
     int gravity_time_dispersion;
     int gravity_timer_time;
-    int accel_timer_time;
-    int accel_time_average;
-    int accel_time_dispersion;
     int cells_h; // ячеек по горизонтали
     int cells_v; // ячеек по вертикали
 
