@@ -120,7 +120,7 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
             painter->setPen(pen);
             painter->drawEllipse(x,y,r,r);
 
-        qDebug()<<"PAINR EVENT !!!!!!!!!!!!!!!     "<<grav_direction<<"\n";
+      //  qDebug()<<"PAINR EVENT !!!!!!!!!!!!!!!     "<<grav_direction<<"\n";
         im = pm->toImage();
 
         QColor color;
@@ -175,15 +175,18 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
             time_d = time_d.number(your_time->elapsed()/1000);
             time_r = time_r.number(your_time->elapsed()%1000);
             utime = (double)your_time->elapsed()/1000;
-            bool ok;
+
             painter->setPen(QPen(Qt::black));
             painter->setPen(QPen(Qt::black));
             painter->drawEllipse(x-r,y-r,r*r,r*r);
 
+
+            bool ok;
             input_uname = QInputDialog::getText(NULL, tr("Input your name"),tr("Your name:"), QLineEdit::Normal,
                                                 QDir::home().dirName(), &ok);
             if (!input_uname.isEmpty())
                 res->AddResult(input_uname.toStdString(),utime);
+
 
             painter->setBrush(QBrush(Qt::black));
             painter->drawRect(QRectF(0,0,pm->width(),pm->height()));
@@ -213,9 +216,12 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
             }
 
             it = data.begin();
-            std::pair<std::string,double> temp = *it;
-            time_d = time_d.number(temp.second);
-            ui->best_time_view->setText(time_d);
+            if(!data.empty()){
+                std::pair<std::string,double> temp = *it;
+                time_d = time_d.number(temp.second);
+                ui->best_time_view->setText(time_d);
+
+            }
             ui->your_time_view->setText("Let's play again!");
             ui->pushButton_generate->setFocus();
             ui->pushButton_generate->setEnabled(true);
@@ -287,7 +293,7 @@ void MainWindow::Key_timerTick()
 
 void MainWindow::timerTick()
 {
-    qDebug()<<"TTTimerTick !!!!!!!!!!!!!!!    "<<grav_direction<<"\n";
+ //   qDebug()<<"TTTimerTick !!!!!!!!!!!!!!!    "<<grav_direction<<"\n";
     timer_tick_counter--;
     if(timer_tick_counter <0)
     {
